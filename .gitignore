@@ -1,2 +1,5 @@
 # Ignore Python virtual environments
 RealTime_Blockchain_env/
+
+PowerShell_profile.ps1
+python310.bat
