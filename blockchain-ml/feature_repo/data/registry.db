@@ -1,0 +1,25 @@
+
+p
+P
+address+Blockchain address entity for feature store"addressJblockchain_ml
+¬íĞÃ¨Èí¬íĞÃ¨Èí
+D
+$
+__dummy"
+__dummy_idJblockchain_ml
+¬íĞÃ¨Èí¬íĞÃ¨Èí1"$c9fd3b9c-38ba-4716-b148-71127c50f837*¬íĞÃ¸Úş‘2
+ü
+address_featuresblockchain_mladdress"
+total_value"
+tx_count"
+	avg_value:Ùevent_timestamp‚Ë
+È{"name": "address_features_source", "query": "\n        SELECT address, total_value, tx_count, avg_value, CURRENT_TIMESTAMP AS event_timestamp\n        FROM address_features_table\n    ", "table": ""}ŠZfeast.infra.offline_stores.contrib.postgres_offline_store.postgres_source.PostgreSQLSource¢address_features_source@R7Aggregated transaction features per blockchain address.b
+address
+¬íĞÃØûª‘¬íĞÃØûª‘RÓ
+Ğ
+,feast.infra.online_stores.sqlite.SqliteTable"Ÿ
+}C:\Users\Damilare\Desktop\DataClubs\Final Project - Real Time Blockchain Data\blockchain-ml\feature_repo\data\online_store.dbblockchain_ml_address_featuresbéevent_timestamp‚Ë
+È{"name": "address_features_source", "query": "\n        SELECT address, total_value, tx_count, avg_value, CURRENT_TIMESTAMP AS event_timestamp\n        FROM address_features_table\n    ", "table": ""}ŠZfeast.infra.offline_stores.contrib.postgres_offline_store.postgres_source.PostgreSQLSource¢address_features_sourceªblockchain_mlŠ/
+
+blockchain_ml
+«íĞÃèÛÑ¦«íĞÃèÛÑ¦
