@@ -5,8 +5,24 @@ import os
 from datetime import datetime
 import matplotlib.pyplot as plt
 import shap
+import time
+
+st.set_page_config(page_title="Blockchain Anomaly Detection", layout="wide", initial_sidebar_state="expanded")
 
 st.title("Real-Time Blockchain Anomaly Detection Dashboard")
+
+# Add auto-refresh functionality
+refresh_interval = st.sidebar.slider("Auto-refresh interval (seconds)", 5, 60, 30)
+if st.sidebar.button("Refresh Now"):
+    st.rerun()
+
+# Auto-refresh placeholder
+placeholder = st.empty()
+auto_refresh = st.sidebar.checkbox("Enable auto-refresh", value=True)
+
+if auto_refresh:
+    time.sleep(refresh_interval)
+    st.rerun()
 
 # Load anomaly events
 try:
@@ -18,7 +34,7 @@ try:
     if 'timestamp' not in df.columns:
         df['timestamp'] = pd.to_datetime(df['hash'].apply(lambda x: int(x[:8], 16)), unit='s', errors='coerce')
     df_time = df.dropna(subset=['timestamp']).set_index('timestamp')
-    anomaly_rate = df_time.resample('1H').size()
+    anomaly_rate = df_time.resample('1h').size()
     st.line_chart(anomaly_rate)
 
     # 2. Top Addresses Involved in Anomalies (if available)
@@ -61,8 +77,15 @@ try:
         last_update = datetime.fromtimestamp(os.path.getmtime("data_pipeline.log"))
         st.write(f"Last Pipeline Log Update: {last_update}")
 
+except FileNotFoundError:
+    st.warning("No anomaly events file found. The system is starting up or no anomalies have been detected yet.")
 except Exception as e:
-    st.warning(f"No anomaly events logged yet. ({e})")
+    st.error(f"Error loading anomaly events: {e}")
+
+# Show last update time
+if os.path.exists("anomaly_events.csv"):
+    last_update = datetime.fromtimestamp(os.path.getmtime("anomaly_events.csv"))
+    st.info(f"Last updated: {last_update.strftime('%Y-%m-%d %H:%M:%S')}")
 
 st.write("This dashboard updates as new anomalies are detected in real time.")
 
@@ -73,7 +96,7 @@ try:
     # Whale rate over time
     if 'timestamp' not in whale_df.columns:
         whale_df['timestamp'] = pd.to_datetime(whale_df['hash'].apply(lambda x: int(x[:8], 16)), unit='s', errors='coerce')
-    whale_rate = whale_df.dropna(subset=['timestamp']).set_index('timestamp').resample('1H').size()
+    whale_rate = whale_df.dropna(subset=['timestamp']).set_index('timestamp').resample('1h').size()
     st.line_chart(whale_rate)
     # Recent whales
     st.subheader("Recent Whale Transactions")
@@ -82,8 +105,10 @@ try:
     if 'address' in whale_df.columns:
         st.subheader("Top Whale Addresses")
         st.bar_chart(whale_df['address'].value_counts().head(10))
+except FileNotFoundError:
+    st.info("No whale transactions file found. The system is starting up or no whale transactions have been detected yet.")
 except Exception as e:
-    st.info("No whale transactions detected yet.")
+    st.error(f"Error loading whale transactions: {e}")
 
 # Address Risk Scoring Leaderboard
 st.header("🏆 Address Risk Leaderboard")
@@ -99,8 +124,10 @@ try:
     st.dataframe(anomaly_df[anomaly_df['address'] == selected_address].tail(10))
     st.write("Recent whale transactions for this address:")
     st.dataframe(whale_df[whale_df['address'] == selected_address].tail(10))
+except FileNotFoundError:
+    st.info("No address risk data file found. The system is starting up or no risk data has been generated yet.")
 except Exception as e:
-    st.info("No address risk data available yet.")
+    st.error(f"Error loading address risk data: {e}")
 
 # Anomaly Explanation (SHAP)
 st.header("🔍 Anomaly Explanation")
@@ -125,7 +152,7 @@ st.header("📊 Real-Time Transaction Volume & Heatmaps")
 try:
     # Transaction volume by hour
     if 'timestamp' in anomaly_df.columns:
-        volume_by_hour = anomaly_df.set_index('timestamp').resample('1H').size()
+        volume_by_hour = anomaly_df.set_index('timestamp').resample('1h').size()
         st.subheader("Anomaly Transaction Volume by Hour")
         st.line_chart(volume_by_hour)
     # Heatmap: address vs. hour (if address available)

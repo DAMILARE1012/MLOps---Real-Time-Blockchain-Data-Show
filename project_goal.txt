@@ -94,3 +94,248 @@ Code → Testing → Building → Deployment → Monitoring
  ↓        ↓         ↓          ↓           ↓
 GitHub   pytest    Docker    AWS ECS     Prometheus
 Actions
+
+
+_______________________________________________________________
+# Pending tasks....
+Trigger an anomaly or whale event using telegram bot...
+Confirm from Telegram for alerts.
+Thereafter, let's automate retraining, health checks or CI/CD. 
+
+
+Automation
+Purpose: Make your system robust, hands-off, and production-ready.
+How:
+Automate model retraining (e.g., with a cron job or Prefect/Airflow).
+Automate pipeline restarts, health checks, and dashboard updates.
+Set up CI/CD for code, Docker, and infrastructure.
+
+
+
+ Complete System Startup Guide
+
+  Step 1: Start the Automation System
+
+  cd "C:\Users\Damilare\Desktop\DataClubs\Final Project - Real Time Blockchain Data"
+  ./RealTime_Blockchain_env/Scripts/activate
+  python start_automation.py
+
+  Expected Output:
+  ================================================================================
+  🚀 BLOCKCHAIN ANOMALY DETECTION SYSTEM - AUTOMATION STARTUP
+  ================================================================================
+  📅 Started: 2024-01-15 14:30:00
+  📂 Working Directory: C:\Users\Damilare\Desktop\DataClubs\Final Project - Real Time Blockchain Data
+  🐍 Python Version: 3.11.0
+  ================================================================================
+
+  🔍 Checking Dependencies...
+    ✅ prefect
+    ✅ pandas
+    ✅ numpy
+    ✅ scikit-learn
+    ✅ psutil
+    ✅ asyncpg
+    ✅ redis
+    ✅ telegram
+  ✅ All dependencies are installed!
+
+  🔍 Checking Environment...
+    ✅ .env file found
+    ✅ Telegram configuration found
+    ✅ models
+    ✅ automation
+    📁 Creating health_reports
+    📁 Creating monitoring_data
+    ✅ ML model found
+
+  🚀 Starting Prefect Server...
+    ✅ Prefect server started successfully
+    🌐 UI available at: http://localhost:4200
+
+  📦 Deploying Workflows...
+    ✅ Successfully deployed 3 workflows
+      1. health-check-deployment
+      2. system-monitoring-deployment
+      3. model-retraining-deployment
+
+  🤖 Starting Prefect Agent...
+    ✅ Prefect agent started successfully
+
+  🏥 Running Initial Health Check...
+    ✅ Health check completed: HEALTHY
+    📊 Overall health: 85.2%
+
+  🎉 STARTUP COMPLETE!
+
+  Step 2: Start Your Data Pipeline (New Terminal)
+
+  cd "C:\Users\Damilare\Desktop\DataClubs\Final Project - Real Time Blockchain Data"
+  ./RealTime_Blockchain_env/Scripts/activate
+  python -m src.data_pipeline.main
+
+  Expected Output:
+  INFO:__main__:Starting Blockchain ML Data Pipeline
+  INFO:__main__:Prometheus metrics server started on port 8001
+  INFO:__main__:Connecting to Redis...
+  INFO:src.data_pipeline.message_queue:Connected to Redis at redis://localhost:6379
+  INFO:__main__:Connecting to PostgreSQL...
+
+  INFO:__main__:ANOMALY DETECTED: f266715fc70941b707859a7e9c8f97013dc0aaaf64a12c08647a4cc05051c57f with score -0.0062
+  INFO:__main__:Anomaly alert sent successfully
+  INFO:__main__:WHALE DETECTED: 1c7bec44f2ac9ddd3776e9ef108586d019c76ea9b893b6fffd1c82fb31ebc900
+
+  Step 3: Start the Optimized Dashboard (New Terminal)
+
+  cd "C:\Users\Damilare\Desktop\DataClubs\Final Project - Real Time Blockchain Data"
+  ./RealTime_Blockchain_env/Scripts/activate
+  streamlit run dashboard_optimized.py --server.port 8502
+
+  Expected Output:
+    You can now view your Streamlit app in your browser.
+
+    Local URL: http://localhost:8502
+    Network URL: http://192.168.1.100:8502
+
+    For better performance, run this command to enable server-side caching:
+    $ streamlit run dashboard_optimized.py --server.enableCORS=false
+
+  📱 What You'll See in Telegram
+
+  Initial Health Check Alert:
+
+  🔍 Health Check - System monitoring active at 2024-01-15 14:30:15
+
+  Anomaly Detection Alert:
+
+  ANOMALY DETECTED!
+  Hash: f266715fc70941b707859a7e9c8f97013dc0aaaf64a12c08647a4cc05051c57f
+  Score: -0.0062
+  Value: 3066619
+  Fee: 25000
+  Inputs: 121
+  Outputs: 2
+  Address: bc1qus9vl6gs00rk5828feyehrsuc3ujhe9z36ykmz
+
+  Whale Transaction Alert:
+
+  WHALE ALERT!
+  Hash: 1c7bec44f2ac9ddd3776e9ef108586d019c76ea9b893b6fffd1c82fb31ebc900
+  Value: 15.23 BTC
+  Fee: 50000
+  Inputs: 3
+  Outputs: 2
+  Address: bc1qrays3q7k452vry7u6g6qg5wf9uhxks9nsjanqh
+
+  🌐 Web Interfaces You Can Access
+
+  1. Prefect Dashboard - http://localhost:4200
+
+  - Real-time workflow monitoring
+  - Execution history and logs
+  - Performance metrics
+  - Schedule management
+
+  2. Optimized Streamlit Dashboard - http://localhost:8502
+
+  - Real-time anomaly visualization
+  - Whale transaction tracking
+  - System health indicators
+  - Interactive charts and filters
+
+  3. Prometheus Metrics - http://localhost:8001
+
+  - System performance metrics
+  - Pipeline statistics
+  - Resource utilization
+
+  4. Grafana Dashboard - http://localhost:3000 (if running)
+
+  - Advanced visualizations
+  - Historical trend analysis
+  - Custom dashboards
+
+  📊 Expected System Behavior
+
+  Continuous Operations:
+
+  - Every 5 minutes: System monitoring check
+  - Every 15 minutes: Health check
+  - Every transaction: Anomaly detection
+  - Large transactions: Whale alerts
+  - Daily at 2 AM: Model retraining
+
+  File Updates:
+
+  - anomaly_events.csv - New anomalies added in real-time
+  - whale_events.csv - New whale transactions
+  - data_pipeline.log - Continuous logging
+  - health_reports/ - Health check reports every 15 minutes
+  - monitoring_data/ - System metrics every 5 minutes
+
+  🔍 How to Monitor Your System
+
+  Check System Status:
+
+  python automation/run_automation.py --action status
+
+  Interactive Menu:
+
+  python automation/run_automation.py --action interactive
+
+  Manual Health Check:
+
+  python automation/run_automation.py --action health
+
+  View Recent Anomalies:
+
+  tail -f anomaly_events.csv
+
+  View Pipeline Logs:
+
+  tail -f data_pipeline.log
+
+  🎯 Success Indicators
+
+  You'll know everything is working when you see:
+
+  ✅ Prefect UI shows active workflows
+  ✅ Telegram alerts are received
+  ✅ Dashboard shows real-time data
+  ✅ CSV files are being updated
+  ✅ Pipeline logs show transactions
+  ✅ No error messages in logs
+
+  🚨 If Something Goes Wrong
+
+  Troubleshooting Commands:
+
+  # Check if containers are running
+  docker-compose ps
+
+  # Check system health
+  python automation/run_automation.py --action health
+
+  # Restart automation
+  python start_automation.py
+
+  # Check Prefect status
+  prefect deployment ls
+
+  Common Issues:
+
+  - Port conflicts: Change ports in configs
+  - Missing dependencies: Run pip install -r requirements.txt
+  - Database connection: Check Docker containers
+  - Telegram not working: Verify .env file
+
+  🎉 You're All Set!
+
+  Your blockchain anomaly detection system is now:
+  - 🤖 Fully automated
+  - 📱 Sending alerts to Telegram
+  - 📊 Displaying real-time data
+  - 🔍 Monitoring system health
+  - 🛠️ Self-healing and maintaining
+
+  Sit back and watch the magic happen! 🚀

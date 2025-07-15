@@ -83,13 +83,25 @@ class DataPipeline:
                     await self.database.store_transaction(transaction_data)
                     logger.info(f"Stored unconfirmed transaction: {transaction_data.get('hash', 'unknown')}")
                 # --- Real-time anomaly scoring and alerting ---
-                features = extract_features_from_transaction(transaction_data)
-                score = self.anomaly_model.decision_function(features)[0]
-                is_anomaly = self.anomaly_model.predict(features)[0] == -1
-                if is_anomaly:
-                    send_alert(transaction_data, score)
-                # --- Whale tracker ---
-                send_whale_alert(transaction_data, threshold_btc=10)  # 10 BTC threshold
+                try:
+                    features = extract_features_from_transaction(transaction_data)
+                    score = self.anomaly_model.decision_function(features)[0]
+                    is_anomaly = self.anomaly_model.predict(features)[0] == -1
+                    logger.debug(f"Transaction {transaction_data.get('hash', 'unknown')}: anomaly_score={score:.4f}, is_anomaly={is_anomaly}")
+                    
+                    if is_anomaly:
+                        logger.info(f"ANOMALY DETECTED: {transaction_data.get('hash', 'unknown')} with score {score:.4f}")
+                        await send_alert(transaction_data, score)
+                        logger.info("Anomaly alert sent successfully")
+                    
+                    # --- Whale tracker ---
+                    whale_detected = await send_whale_alert(transaction_data, threshold_btc=10)  # 10 BTC threshold
+                    if whale_detected:
+                        logger.info(f"WHALE DETECTED: {transaction_data.get('hash', 'unknown')}")
+                        
+                except Exception as e:
+                    logger.error(f"Error in anomaly detection/alerting: {e}")
+                    logger.exception("Full traceback:")
                     
             elif message_type == "block":
                 # Handle new block

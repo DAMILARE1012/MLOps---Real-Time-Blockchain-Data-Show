@@ -129,11 +129,14 @@ class BlockchainWebSocketClient:
         try:
             async for message in self.websocket:
                 await self.process_message(message)
-        except websockets.exceptions.ConnectionClosed:
-            logger.warning("WebSocket connection closed")
-            await self.handle_reconnect()
+        except websockets.exceptions.ConnectionClosed as e:
+            logger.debug(f"WebSocket connection closed: {e}")
+            self.is_connected = False
+            if self.reconnect_attempts < self.max_reconnect_attempts:
+                await self.handle_reconnect()
         except Exception as e:
             logger.error(f"Error in message listener: {e}")
+            self.is_connected = False
             await self.handle_reconnect()
     
     async def process_message(self, message: str) -> None:
@@ -204,13 +207,16 @@ class BlockchainWebSocketClient:
         self.reconnect_attempts += 1
         self.is_connected = False
         
-        logger.info(f"Attempting to reconnect in {self.reconnect_interval} seconds...")
+        logger.info(f"Attempting to reconnect ({self.reconnect_attempts}/{self.max_reconnect_attempts}) in {self.reconnect_interval} seconds...")
         await asyncio.sleep(self.reconnect_interval)
         
         try:
             await self.connect()
+            if self.is_connected:
+                logger.info("Successfully reconnected to WebSocket")
+                self.reconnect_attempts = 0  # Reset counter on successful reconnection
         except Exception as e:
-            logger.error(f"Reconnection failed: {e}")
+            logger.debug(f"Reconnection attempt {self.reconnect_attempts} failed: {e}")
             await self.handle_reconnect()
     
     async def run(self) -> None:

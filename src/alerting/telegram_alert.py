@@ -18,11 +18,11 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 try:
     from dotenv import load_dotenv
     load_dotenv()
-    print("✅ .env file loaded successfully")
+    print("✓ .env file loaded successfully")
 except ImportError:
-    print("⚠️  python-dotenv not installed. Install with: pip install python-dotenv")
+    print("! python-dotenv not installed. Install with: pip install python-dotenv")
 except Exception as e:
-    print(f"⚠️  Could not load .env file: {e}")
+    print(f"! Could not load .env file: {e}")
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -136,60 +136,60 @@ async def send_telegram_alert_batch(messages: list):
 
 def test_telegram_bot():
     """Test the Telegram bot functionality."""
-    print("🤖 Testing Telegram Bot...")
+    print("Testing Telegram Bot...")
     print("=" * 50)
     
     # Check if environment variables are set
     if not TELEGRAM_BOT_TOKEN or TELEGRAM_BOT_TOKEN == "your_telegram_bot_token_here":
-        print("❌ TELEGRAM_BOT_TOKEN not set properly")
-        print("💡 Please set your actual bot token in environment variables")
+        print("X TELEGRAM_BOT_TOKEN not set properly")
+        print("! Please set your actual bot token in environment variables")
         return False
     
     if not TELEGRAM_CHAT_ID or TELEGRAM_CHAT_ID == "your_telegram_chat_id_here":
-        print("❌ TELEGRAM_CHAT_ID not set properly")
-        print("💡 Please set your actual chat ID in environment variables")
+        print("X TELEGRAM_CHAT_ID not set properly")
+        print("! Please set your actual chat ID in environment variables")
         return False
     
-    print(f"✅ Bot Token: {'*' * len(TELEGRAM_BOT_TOKEN)}")
-    print(f"✅ Chat ID: {TELEGRAM_CHAT_ID}")
+    print(f"Bot Token: {'*' * len(TELEGRAM_BOT_TOKEN)}")
+    print(f"Chat ID: {TELEGRAM_CHAT_ID}")
     
     # Test sending a message
-    test_message = "🚀 Blockchain ML System Test Alert!\n\nThis is a test message from your anomaly detection system."
+    test_message = "Blockchain ML System Test Alert!\n\nThis is a test message from your anomaly detection system."
     
-    print(f"\n📤 Sending test message...")
+    print(f"\nSending test message...")
     success = send_telegram_alert(test_message)
     
     if success:
-        print("✅ Test message sent successfully!")
-        print("📱 Check your Telegram chat for the message")
+        print("Test message sent successfully!")
+        print("Check your Telegram chat for the message")
     else:
-        print("❌ Failed to send test message")
-        print("💡 Check your bot token and chat ID")
+        print("X Failed to send test message")
+        print("! Check your bot token and chat ID")
     
     return success
 
 async def test_telegram_bot_async():
     """Async version of the test function."""
-    print("🤖 Testing Telegram Bot (Async)...")
+    print("Testing Telegram Bot (Async)...")
     print("=" * 50)
     
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
-        print("❌ Telegram credentials not set")
+        print("X Telegram credentials not set")
         return False
     
-    print(f"✅ Bot Token: {'*' * len(TELEGRAM_BOT_TOKEN)}")
-    print(f"✅ Chat ID: {TELEGRAM_CHAT_ID}")
+    print(f"Bot Token: {'*' * len(TELEGRAM_BOT_TOKEN)}")
+    print(f"Chat ID: {TELEGRAM_CHAT_ID}")
     
-    test_message = "🚀 Blockchain ML System Async Test!\n\nThis is an async test message."
+    test_message = "Blockchain ML System Async Test!\n\nThis is an async test message."
     
-    print(f"\n📤 Sending test message (async)...")
+    print(f"\nSending test message (async)...")
     success = await send_telegram_alert_async(test_message)
     
     if success:
-        print("✅ Async test message sent successfully!")
-        print("📱 Check your Telegram chat for the message")
+        print("✓ Async test message sent successfully!")
+        print("Check your Telegram chat for the message")
     else:
-        print("❌ Failed to send async test message")
+        print("X Failed to send async test message")
     
     return success
 
