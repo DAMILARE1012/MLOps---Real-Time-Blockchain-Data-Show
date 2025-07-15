@@ -11,6 +11,10 @@ import sys
 from typing import Optional
 
 from prometheus_client import start_http_server
+import joblib
+from src.anomaly_detection.feature_extraction import extract_features_from_transaction
+from src.anomaly_detection.alerting import send_alert
+from src.whale_tracker.whale_alerting import send_whale_alert
 
 from .websocket_client import BlockchainWebSocketClient
 from .message_queue import RedisMessageQueue, MessageProcessor
@@ -46,6 +50,7 @@ class DataPipeline:
         self.database: Optional[DatabaseHandler] = None
         self.message_processor: Optional[MessageProcessor] = None
         self.running = False
+        self.anomaly_model = joblib.load("models/anomaly_model.pkl")
         
     async def start_prometheus_server(self) -> None:
         """Start Prometheus metrics server"""
@@ -77,6 +82,14 @@ class DataPipeline:
                 if self.database:
                     await self.database.store_transaction(transaction_data)
                     logger.info(f"Stored unconfirmed transaction: {transaction_data.get('hash', 'unknown')}")
+                # --- Real-time anomaly scoring and alerting ---
+                features = extract_features_from_transaction(transaction_data)
+                score = self.anomaly_model.decision_function(features)[0]
+                is_anomaly = self.anomaly_model.predict(features)[0] == -1
+                if is_anomaly:
+                    send_alert(transaction_data, score)
+                # --- Whale tracker ---
+                send_whale_alert(transaction_data, threshold_btc=10)  # 10 BTC threshold
                     
             elif message_type == "block":
                 # Handle new block
