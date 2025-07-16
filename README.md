@@ -11,7 +11,12 @@
 - **Automated Whale Tracking**: Identifies and alerts on large-value transactions (whale movements) 
 - **Production-Ready Infrastructure**: Containerized deployment with cloud infrastructure using Terraform and LocalStack
 - **Complete MLOps Pipeline**: End-to-end ML lifecycle with experiment tracking, model registry, automated retraining, and monitoring
-- **Intelligent Alerting**: Real-time Telegram notifications for anomalies and system health
+- **Intelligent Alerting**: Real-time Telegram notifications for anomalies and system health.
+
+## Problem Solution Quick View
+
+https://github.com/user-attachments/assets/cf85bee7-402f-4aab-a565-5571a0c0163a
+
 
 ## 🏗️ System Architecture
 
