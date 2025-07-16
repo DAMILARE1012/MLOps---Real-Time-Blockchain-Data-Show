@@ -28,29 +28,9 @@
 │ Grafana         │    │  Automated      │    │   Versioning    │    │  Real-time      │
 │ Health Checks   │    │  Retraining     │    │   Deployment    │    │  Notifications  │
 └─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
-flowchart TD
-    A[WebSocket<br/>Blockchain.info<br/>Live Data] --> B[Data Pipeline<br/>asyncio<br/>PostgreSQL]
-    B --> C[Feature Store<br/>Feast<br/>Feature Engineering]
-    C --> D[ML Models<br/>Isolation Forest<br/>Real-time]
-    
-    B --> E[Orchestration<br/>Prefect<br/>Automated Retraining]
-    C --> F[Model Registry<br/>MLflow<br/>Versioning]
-    D --> G[Alerting<br/>Telegram<br/>Real-time Notifications]
-    
-    E --> H[Monitoring<br/>Prometheus<br/>Grafana<br/>Health Checks]
-    E --> F
-    F --> G
-    
-    H --> E
-    
-    style A fill:#e1f5fe
-    style B fill:#f3e5f5
-    style C fill:#e8f5e8
-    style D fill:#fff3e0
-    style E fill:#fce4ec
-    style F fill:#f1f8e9
-    style G fill:#ffebee
-    style H fill:#e3f2fd
+
+<img width="801" height="799" alt="image" src="https://github.com/user-attachments/assets/b28d5aaf-8c62-454f-8db1-e8e87b331a1a" />
+
 ```
 
 
