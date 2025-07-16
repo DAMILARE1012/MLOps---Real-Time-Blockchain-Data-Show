@@ -29,10 +29,8 @@
 │ Health Checks   │    │  Retraining     │    │   Deployment    │    │  Notifications  │
 └─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
 
-<img width="801" height="799" alt="image" src="https://github.com/user-attachments/assets/b28d5aaf-8c62-454f-8db1-e8e87b331a1a" />
-
 ```
-
+<img width="801" height="799" alt="image" src="https://github.com/user-attachments/assets/b28d5aaf-8c62-454f-8db1-e8e87b331a1a" />
 
 ## 🛠️ Technology Stack
 
