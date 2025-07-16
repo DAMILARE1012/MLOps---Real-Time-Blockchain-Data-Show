@@ -76,6 +76,43 @@ services:
     depends_on:
       - prometheus
 
+  # LocalStack for AWS services simulation
+  localstack:
+    image: localstack/localstack:latest
+    ports:
+      - "4566:4566"  # LocalStack edge port
+    environment:
+      - SERVICES=s3,rds,ec2,cloudwatch,iam,secretsmanager
+      - DEBUG=1
+      - DATA_DIR=/var/lib/localstack/data
+      - TMPDIR=/var/lib/localstack/tmp
+      - LOCALSTACK_HOST=localstack
+      - PERSISTENCE=1
+    volumes:
+      - localstack_data:/var/lib/localstack
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/health"]
+      interval: 60s
+      timeout: 30s
+      retries: 5
+      start_period: 60s
+
+  # Terraform for Infrastructure as Code
+  terraform:
+    image: hashicorp/terraform:latest
+    working_dir: /workspace
+    volumes:
+      - ./infrastructure/terraform:/workspace
+      - ./infrastructure/terraform/.terraform:/workspace/.terraform
+    environment:
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_ENDPOINT_URL=http://localstack:4566
+    command: tail -f /dev/null  # Keep container running
+    profiles:
+      - terraform
+
   # Main application
   blockchain-ml:
     build: .
@@ -85,6 +122,10 @@ services:
       - DATABASE_URL=postgresql://blockchain_user:blockchain_password@postgres:5432/blockchain_ml
       - REDIS_URL=redis://redis:6379
       - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_ENDPOINT_URL=http://localstack:4566
     volumes:
       - ./src:/app/src
       - ./data:/app/data
@@ -100,4 +141,5 @@ volumes:
   redis_data:
   mlflow_data:
   prometheus_data:
-  grafana_data: 
+  grafana_data:
+  localstack_data: 

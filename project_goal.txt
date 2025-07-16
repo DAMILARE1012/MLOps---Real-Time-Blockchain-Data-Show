@@ -339,3 +339,12 @@ Set up CI/CD for code, Docker, and infrastructure.
   - 🛠️ Self-healing and maintaining
 
   Sit back and watch the magic happen! 🚀
+
+
+  New knowledge...
+    Key components to add:
+  - AWS RDS for PostgreSQL (replace local database)
+  - AWS EC2 or ECS for application hosting
+  - AWS S3 for model artifacts and data storage
+  - AWS CloudWatch for monitoring
+  - AWS ELB for load balancing

@@ -22,30 +22,48 @@ def load_anomaly_data():
     """Load and cache anomaly events data"""
     try:
         if os.path.exists("anomaly_events.csv"):
+            # Check if file has data beyond header
+            with open("anomaly_events.csv", 'r') as f:
+                lines = f.readlines()
+                if len(lines) <= 1:  # Only header or empty
+                    return pd.DataFrame(columns=['hash', 'score', 'total_value', 'fee', 'input_count', 'output_count', 'address', 'timestamp'])
+            
             df = pd.read_csv("anomaly_events.csv")
+            if df.empty:
+                return pd.DataFrame(columns=['hash', 'score', 'total_value', 'fee', 'input_count', 'output_count', 'address', 'timestamp'])
+            
             # Convert timestamp if needed
-            if 'timestamp' not in df.columns:
+            if 'timestamp' not in df.columns and not df.empty:
                 df['timestamp'] = pd.to_datetime(df['hash'].apply(lambda x: int(x[:8], 16)), unit='s', errors='coerce')
             return df
-        return pd.DataFrame()
+        return pd.DataFrame(columns=['hash', 'score', 'total_value', 'fee', 'input_count', 'output_count', 'address', 'timestamp'])
     except Exception as e:
         st.error(f"Error loading anomaly data: {e}")
-        return pd.DataFrame()
+        return pd.DataFrame(columns=['hash', 'score', 'total_value', 'fee', 'input_count', 'output_count', 'address', 'timestamp'])
 
 @st.cache_data(ttl=30)  # Cache for 30 seconds
 def load_whale_data():
     """Load and cache whale events data"""
     try:
         if os.path.exists("whale_events.csv"):
+            # Check if file has data beyond header
+            with open("whale_events.csv", 'r') as f:
+                lines = f.readlines()
+                if len(lines) <= 1:  # Only header or empty
+                    return pd.DataFrame(columns=['hash', 'total_value_btc', 'fee', 'input_count', 'output_count', 'address', 'timestamp'])
+            
             df = pd.read_csv("whale_events.csv")
+            if df.empty:
+                return pd.DataFrame(columns=['hash', 'total_value_btc', 'fee', 'input_count', 'output_count', 'address', 'timestamp'])
+            
             # Convert timestamp if needed
-            if 'timestamp' not in df.columns:
+            if 'timestamp' not in df.columns and not df.empty:
                 df['timestamp'] = pd.to_datetime(df['hash'].apply(lambda x: int(x[:8], 16)), unit='s', errors='coerce')
             return df
-        return pd.DataFrame()
+        return pd.DataFrame(columns=['hash', 'total_value_btc', 'fee', 'input_count', 'output_count', 'address', 'timestamp'])
     except Exception as e:
         st.error(f"Error loading whale data: {e}")
-        return pd.DataFrame()
+        return pd.DataFrame(columns=['hash', 'total_value_btc', 'fee', 'input_count', 'output_count', 'address', 'timestamp'])
 
 @st.cache_data(ttl=60)  # Cache for 1 minute
 def load_risk_data():

@@ -25,6 +25,11 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
 
+# MLflow imports
+import mlflow
+import mlflow.sklearn
+from mlflow.tracking import MlflowClient
+
 # Prefect imports
 from prefect import flow, task, get_run_logger
 from prefect.blocks.system import Secret
@@ -37,7 +42,12 @@ sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from src.alerting.telegram_alert import send_telegram_alert_async
 from src.anomaly_detection.feature_extraction import extract_features_from_transaction
+from src.anomaly_detection.model_registry import ModelRegistry
 # from src.anomaly_detection.model_performance import ModelPerformanceMonitor
+
+# MLflow configuration
+mlflow.set_tracking_uri("http://localhost:5000")
+mlflow.set_experiment("blockchain_model_retraining")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -252,72 +262,118 @@ async def should_retrain_model(drift_metrics: Dict[str, float],
 
 @task
 async def train_new_model(training_data: pd.DataFrame) -> Dict[str, any]:
-    """Train a new anomaly detection model"""
+    """Train a new anomaly detection model with MLflow tracking"""
     logger = get_run_logger()
     
     try:
-        # Prepare features
-        feature_columns = ['total_value', 'fee', 'input_count', 'output_count']
-        X = training_data[feature_columns].values
-        y = training_data['is_anomaly'].values
-        
-        # Split data
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=0.2, random_state=42, stratify=y
-        )
-        
-        # Scale features
-        scaler = StandardScaler()
-        X_train_scaled = scaler.fit_transform(X_train)
-        X_test_scaled = scaler.transform(X_test)
-        
-        # Train Isolation Forest model
-        model = IsolationForest(
-            contamination=0.1,  # Expected anomaly ratio
-            random_state=42,
-            n_estimators=100,
-            max_samples='auto'
-        )
-        
-        # Fit only on normal transactions for unsupervised learning
-        normal_data = X_train_scaled[y_train == 0]
-        model.fit(normal_data)
-        
-        # Evaluate model
-        y_pred = model.predict(X_test_scaled)
-        y_pred_binary = (y_pred == -1).astype(int)  # -1 means anomaly
-        
-        # Calculate metrics
-        from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
-        
-        accuracy = accuracy_score(y_test, y_pred_binary)
-        precision = precision_score(y_test, y_pred_binary, zero_division=0)
-        recall = recall_score(y_test, y_pred_binary, zero_division=0)
-        f1 = f1_score(y_test, y_pred_binary, zero_division=0)
-        
-        model_info = {
-            'model': model,
-            'scaler': scaler,
-            'feature_columns': feature_columns,
-            'training_samples': len(X_train),
-            'performance': {
-                'accuracy': accuracy,
-                'precision': precision,
-                'recall': recall,
-                'f1_score': f1,
-                'test_samples': len(X_test)
-            },
-            'timestamp': datetime.now().isoformat()
-        }
-        
-        logger.info(f"New model trained successfully:")
-        logger.info(f"  - Training samples: {len(X_train)}")
-        logger.info(f"  - Accuracy: {accuracy:.3f}")
-        logger.info(f"  - Precision: {precision:.3f}")
-        logger.info(f"  - Recall: {recall:.3f}")
-        logger.info(f"  - F1 Score: {f1:.3f}")
-        
-        return model_info
+        with mlflow.start_run(run_name="retraining_experiment") as run:
+            # Prepare features
+            feature_columns = ['total_value', 'fee', 'input_count', 'output_count']
+            X = training_data[feature_columns].values
+            y = training_data['is_anomaly'].values
+            
+            # Log data information
+            mlflow.log_param("feature_columns", feature_columns)
+            mlflow.log_param("total_samples", len(training_data))
+            mlflow.log_param("anomaly_ratio", y.mean())
+            
+            # Split data
+            X_train, X_test, y_train, y_test = train_test_split(
+                X, y, test_size=0.2, random_state=42, stratify=y
+            )
+            
+            mlflow.log_param("train_samples", len(X_train))
+            mlflow.log_param("test_samples", len(X_test))
+            
+            # Scale features
+            scaler = StandardScaler()
+            X_train_scaled = scaler.fit_transform(X_train)
+            X_test_scaled = scaler.transform(X_test)
+            
+            # Train Isolation Forest model
+            contamination = 0.1
+            n_estimators = 100
+            
+            model = IsolationForest(
+                contamination=contamination,
+                random_state=42,
+                n_estimators=n_estimators,
+                max_samples='auto'
+            )
+            
+            # Log model parameters
+            mlflow.log_param("algorithm", "IsolationForest")
+            mlflow.log_param("contamination", contamination)
+            mlflow.log_param("n_estimators", n_estimators)
+            mlflow.log_param("max_samples", "auto")
+            
+            # Fit only on normal transactions for unsupervised learning
+            normal_data = X_train_scaled[y_train == 0]
+            model.fit(normal_data)
+            
+            mlflow.log_param("normal_training_samples", len(normal_data))
+            
+            # Evaluate model
+            y_pred = model.predict(X_test_scaled)
+            y_pred_binary = (y_pred == -1).astype(int)  # -1 means anomaly
+            
+            # Calculate metrics
+            from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+            
+            accuracy = accuracy_score(y_test, y_pred_binary)
+            precision = precision_score(y_test, y_pred_binary, zero_division=0)
+            recall = recall_score(y_test, y_pred_binary, zero_division=0)
+            f1 = f1_score(y_test, y_pred_binary, zero_division=0)
+            
+            # Log metrics
+            mlflow.log_metric("accuracy", accuracy)
+            mlflow.log_metric("precision", precision)
+            mlflow.log_metric("recall", recall)
+            mlflow.log_metric("f1_score", f1)
+            
+            # Log additional metrics
+            anomaly_scores = model.decision_function(X_test_scaled)
+            mlflow.log_metric("mean_anomaly_score", np.mean(anomaly_scores))
+            mlflow.log_metric("std_anomaly_score", np.std(anomaly_scores))
+            
+            # Log model
+            mlflow.sklearn.log_model(
+                model, 
+                "retraining_model",
+                registered_model_name="blockchain_anomaly_detector"
+            )
+            
+            # Log scaler as artifact
+            scaler_path = "temp_scaler.pkl"
+            joblib.dump(scaler, scaler_path)
+            mlflow.log_artifact(scaler_path, "preprocessing")
+            os.remove(scaler_path)  # Clean up
+            
+            model_info = {
+                'model': model,
+                'scaler': scaler,
+                'feature_columns': feature_columns,
+                'training_samples': len(X_train),
+                'performance': {
+                    'accuracy': accuracy,
+                    'precision': precision,
+                    'recall': recall,
+                    'f1_score': f1,
+                    'test_samples': len(X_test)
+                },
+                'timestamp': datetime.now().isoformat(),
+                'mlflow_run_id': run.info.run_id
+            }
+            
+            logger.info(f"New model trained successfully:")
+            logger.info(f"  - Training samples: {len(X_train)}")
+            logger.info(f"  - Accuracy: {accuracy:.3f}")
+            logger.info(f"  - Precision: {precision:.3f}")
+            logger.info(f"  - Recall: {recall:.3f}")
+            logger.info(f"  - F1 Score: {f1:.3f}")
+            logger.info(f"  - MLflow Run ID: {run.info.run_id}")
+            
+            return model_info
         
     except Exception as e:
         logger.error(f"Error training new model: {e}")
@@ -361,10 +417,23 @@ async def validate_new_model(model_info: Dict[str, any]) -> bool:
 
 @task
 async def deploy_new_model(model_info: Dict[str, any]) -> bool:
-    """Deploy new model to production"""
+    """Deploy new model to production with MLflow model registry"""
     logger = get_run_logger()
     
     try:
+        # Initialize model registry
+        registry = ModelRegistry()
+        
+        # Register the new model version
+        run_id = model_info['mlflow_run_id']
+        version = registry.register_model(run_id, "retraining_model")
+        
+        logger.info(f"Registered new model version: {version}")
+        
+        # Promote to staging first
+        registry.promote_model(version, "Staging")
+        logger.info(f"Promoted model version {version} to Staging")
+        
         # Create backup of current model
         current_model_path = "models/anomaly_model.pkl"
         if os.path.exists(current_model_path):
@@ -372,7 +441,7 @@ async def deploy_new_model(model_info: Dict[str, any]) -> bool:
             shutil.copy2(current_model_path, backup_path)
             logger.info(f"Current model backed up to {backup_path}")
         
-        # Save new model
+        # Save new model locally
         os.makedirs("models", exist_ok=True)
         joblib.dump(model_info['model'], current_model_path)
         
@@ -380,12 +449,14 @@ async def deploy_new_model(model_info: Dict[str, any]) -> bool:
         scaler_path = "models/scaler.pkl"
         joblib.dump(model_info['scaler'], scaler_path)
         
-        # Save model metadata
+        # Save model metadata with MLflow info
         metadata = {
             'feature_columns': model_info['feature_columns'],
             'training_samples': model_info['training_samples'],
             'performance': model_info['performance'],
-            'timestamp': model_info['timestamp']
+            'timestamp': model_info['timestamp'],
+            'mlflow_run_id': run_id,
+            'model_version': version
         }
         
         metadata_path = "models/model_metadata.json"
@@ -393,10 +464,18 @@ async def deploy_new_model(model_info: Dict[str, any]) -> bool:
         with open(metadata_path, 'w') as f:
             json.dump(metadata, f, indent=2)
         
+        # Promote to production after successful deployment
+        registry.promote_model(version, "Production")
+        logger.info(f"Promoted model version {version} to Production")
+        
+        # Archive old models (keep last 3 versions)
+        registry.archive_old_models(keep_versions=3)
+        
         logger.info(f"New model deployed successfully")
         logger.info(f"  - Model path: {current_model_path}")
         logger.info(f"  - Scaler path: {scaler_path}")
         logger.info(f"  - Metadata path: {metadata_path}")
+        logger.info(f"  - MLflow version: {version}")
         
         return True
         
@@ -412,6 +491,9 @@ async def send_retraining_notification(success: bool, model_info: Dict[str, any]
     try:
         if success and model_info:
             performance = model_info['performance']
+            run_id = model_info.get('mlflow_run_id', 'N/A')
+            model_version = model_info.get('model_version', 'N/A')
+            
             message = f"""
 🤖 **MODEL RETRAINING COMPLETED** 🤖
 
@@ -423,9 +505,12 @@ async def send_retraining_notification(success: bool, model_info: Dict[str, any]
   • F1 Score: {performance['f1_score']:.1%}
 
 📈 **Training Data**: {model_info['training_samples']} samples
+🔄 **MLflow Run ID**: {run_id[:8]}...
+📋 **Model Version**: {model_version}
 🕒 **Timestamp**: {model_info['timestamp']}
 
 The system is now using the updated model for anomaly detection.
+You can view the experiment details at: http://localhost:5000
             """
         else:
             message = f"""
@@ -440,6 +525,13 @@ Please check the logs for more details.
         
         await send_telegram_alert_async(message)
         logger.info("Retraining notification sent successfully")
+        
+        # Log to MLflow for tracking
+        if success and model_info:
+            with mlflow.start_run(run_name="retraining_notification"):
+                mlflow.log_param("notification_type", "success")
+                mlflow.log_param("model_version", model_info.get('model_version', 'N/A'))
+                mlflow.log_metric("notification_sent", 1)
         
     except Exception as e:
         logger.error(f"Error sending retraining notification: {e}")

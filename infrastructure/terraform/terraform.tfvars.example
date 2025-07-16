@@ -1,0 +1,24 @@
+# Example Terraform variables file
+# Copy this file to terraform.tfvars and modify as needed
+
+# AWS Configuration
+aws_region = "us-east-1"
+aws_access_key = "test"
+aws_secret_key = "test"
+
+# LocalStack Configuration
+localstack_endpoint = "http://localstack:4566"
+
+# Database Configuration
+db_name = "blockchain_ml"
+db_username = "blockchain_user"
+db_password = "blockchain_password"
+
+# EC2 Configuration
+ami_id = "ami-0c55b159cbfafe1d0"  # Amazon Linux 2
+instance_type = "t2.micro"
+key_name = "blockchain-ml-key"
+
+# Application Configuration
+telegram_token = "your-telegram-bot-token"
+environment = "development"

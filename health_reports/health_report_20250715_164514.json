@@ -1,0 +1,42 @@
+{
+  "timestamp": "2025-07-15T16:45:13.415141",
+  "overall_health": 0.35416666666666663,
+  "system_status": "CRITICAL",
+  "components": {
+    "pipeline": {
+      "score": 0.25,
+      "details": {
+        "pipeline_running": false,
+        "recent_activity": false,
+        "log_file_exists": true,
+        "websocket_connected": false
+      }
+    },
+    "model": {
+      "score": 0.5,
+      "details": {
+        "model_file_exists": true,
+        "model_loadable": true,
+        "recent_predictions": false,
+        "performance_acceptable": false
+      }
+    },
+    "database": {
+      "score": 0.0,
+      "details": {
+        "postgres_connected": false,
+        "redis_connected": false,
+        "recent_data": false,
+        "tables_exist": false
+      }
+    },
+    "alerts": {
+      "score": 0.6666666666666666,
+      "details": {
+        "telegram_configured": true,
+        "telegram_reachable": true,
+        "recent_alerts": false
+      }
+    }
+  }
+}
