@@ -12,6 +12,24 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_DB: blockchain_ml
+          POSTGRES_USER: blockchain_user
+          POSTGRES_PASSWORD: blockchain_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://blockchain_user:blockchain_password@localhost:5432/blockchain_ml
+      TELEGRAM_BOT_TOKEN: dummy_token  # Replace with ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: dummy_chat_id  # Replace with ${{ secrets.TELEGRAM_CHAT_ID }}
     strategy:
       matrix:
         python-version: [3.10, 3.11]
@@ -38,6 +56,12 @@ jobs:
         pip install -r requirements.txt
         pip install pytest pytest-asyncio pytest-cov black isort mypy flake8 pre-commit
     
+    - name: Start MLflow server
+      run: |
+        pip install mlflow
+        nohup mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root ./mlruns --host 0.0.0.0 --port 5000 &
+        sleep 10
+    
     - name: Run linting
       run: |
         black --check src/ tests/
@@ -47,7 +71,7 @@ jobs:
     
     - name: Run tests
       run: |
-        pytest tests/ -v --cov=src --cov-report=xml
+        pytest tests/ -v --cov=src --cov-report=xml -m "not integration or integration"
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
